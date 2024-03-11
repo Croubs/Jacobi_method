@@ -17,12 +17,12 @@ sistemEquations<- function() {
       return(outMatrix)
     }
     
-    # Function to create the vector of equations values
-    create_values_matrix <- function(n) {
+    # Function to create the vectors
+    create_vector <- function(n, message) {
       outMatrix <- matrix(0, nrow = n, ncol = 1)
       
       for (i in 1:n) {
-        prompt <- paste("Enter the value of the ", i," equation: ")
+        prompt <- paste("Enter the value for the", message,i,": ")
         item <- readline(prompt = prompt)
         
         outMatrix[i,1] <- as.numeric(item)
@@ -30,14 +30,90 @@ sistemEquations<- function() {
       
       return(outMatrix)
     }
+
+    jacobi_method <- function(A, b, x_anterior, n, relative_error) {
+      # Create 2 matrices
+      D_inverse <- matrix(0, nrow = n, ncol = n)
+      R <- matrix(0, nrow = n, ncol = n)
+
+      # Variable to know if there's an error
+      BAND <- FALSE
+
+      # Set values for D and R
+      for (i in 1:n) {
+        for (j in 1:n) {
+          # Can't be 0s in the principal diagonal
+          if (A[i,i] == 0) {
+            print("Error, 0 in the principal diagonal")
+            BAND <- TRUE
+            break
+          } else {
+            if (i == j) {
+              D_inverse[i,j] <- 1/A[i,j]
+              R[i,j] <- 0
+            } else {
+              R[i,j] <- A[i,j]
+              D_inverse[i,j] <- 0
+            }
+          }
+        }
+      }
+
+      if (BAND) {
+        return(0)
+      }
+
+      # Recursive part
+      error <- 1000
+      x <- matrix(0, nrow = n, ncol = 1)
+      while (error > relative_error) {
+        # Get new values
+        x <- D_inverse %*% (b - R%*%x_anterior)
+
+        # Get the relative error for the firts value
+        error <- abs((x[1,1]-x_anterior[1,1])/x[1,1])
+        # Now for the rest of values
+        for (i in 2:n) {
+          aux <- abs((x[i,1]-x_anterior[i,1])/x[i,1])
+          # Get the biggest relative error
+          if (aux > error) {
+            error <- aux
+          }
+        }
+
+        # Set new old values
+        x_anterior <- x
+
+        # Show the current solution
+        success_message = paste("Solutions with a relative error of: ", error)
+        print(success_message)
+        print(x)
+      }
+      
+      # Show the final solution
+      success_message = paste("Solutions with a relative error of: ", error)
+      print(success_message)
+      print(x)
+
+      return(1)
+    }
     
+
+
     # Get matrix size
     res <- readline(prompt = "Enter the n value for nxn matrix: ")
     n <- as.numeric(res)
     
-    # Get the system matrix and values vector
+    # Get the system matrix, values vector and initial values
     custom <- create_custom_matrix(n)
-    values <- create_values_matrix(n)
+    values <- create_vector(n, "equation")
+    initial <- create_vector(n, "variable")
+
+    # Get relative error
+    res <- readline(prompt = "Enter the relative error: ")
+    error <- as.numeric(res)
+
+    jacobi_method(custom, values, initial, n, error)
     
     cicle <- readline("Do you want to try again?\n press 1 to continue: ")
   }
