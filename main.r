@@ -31,6 +31,7 @@ sistemEquations<- function() {
       return(outMatrix)
     }
 
+    # Jacobi method function
     jacobi_method <- function(A, b, x_anterior, n, relative_error) {
       # Create 2 matrices
       D_inverse <- matrix(0, nrow = n, ncol = n)
@@ -98,7 +99,41 @@ sistemEquations<- function() {
       return(1)
     }
     
+    # Reorder the matrix function
+    reorder_matrix <- function(matrix) {
+      # Move the biggest values to the principal diagonal
+      for (i in 1:n) {
+        for (j in 1:n) {
+          if (abs(matrix[i,i]) < abs(matrix[i,j])) {
+            # Move the row
+            aux <- matrix[,i]
+            matrix[,i] <- matrix[,j]
+            matrix[,j] <- aux
+          }
+        }
+      }
 
+      for (i in 1:n) {
+        sum <- 0
+        for (j in 1:n) {
+          # Sum every value in the row but the one in the principal diagonal
+          if(i != j) {
+            sum <- sum + abs(matrix[i,j])
+          }
+        }
+
+        # Check what's bigger
+        if(abs(matrix[i,i]) < sum) {
+          message <- paste("Error: the element in the principal diagonal of the",i,"row is not bigger than the rest elements sum")
+          print(message)
+          print("Matrix reordered:")
+          print(matrix)
+          return(0)
+        }
+      }
+
+      return(matrix)
+    }
 
     # Get matrix size
     res <- readline(prompt = "Enter the n value for nxn matrix: ")
@@ -106,14 +141,17 @@ sistemEquations<- function() {
     
     # Get the system matrix, values vector and initial values
     custom <- create_custom_matrix(n)
-    values <- create_vector(n, "equation")
-    initial <- create_vector(n, "variable")
+    custom <- reorder_matrix(custom)
+    if (is.matrix(custom)) {
+      values <- create_vector(n, "equation")
+      initial <- create_vector(n, "variable")
 
-    # Get relative error
-    res <- readline(prompt = "Enter the relative error: ")
-    error <- as.numeric(res)
+      # Get relative error
+      res <- readline(prompt = "Enter the relative error: ")
+      error <- as.numeric(res)
 
-    jacobi_method(custom, values, initial, n, error)
+      jacobi_method(custom, values, initial, n, error)
+    }
     
     cicle <- readline("Do you want to try again?\n press 1 to continue: ")
   }
