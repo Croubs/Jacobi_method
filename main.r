@@ -32,7 +32,11 @@ sistemEquations<- function() {
     }
 
     # Jacobi method function
-    jacobi_method <- function(A, b, x_anterior, n, relative_error) {
+    jacobi_method <- function(aumented_matrix, x_anterior, n, relative_error) {
+      #
+      A <- aumented_matrix[1:n, 1:n]
+      b <- aumented_matrix[1:n, (n+1)]
+
       # Create 2 matrices
       D_inverse <- matrix(0, nrow = n, ncol = n)
       R <- matrix(0, nrow = n, ncol = n)
@@ -99,36 +103,48 @@ sistemEquations<- function() {
       return(1)
     }
     
-    # Reorder the matrix function
-    reorder_matrix <- function(matrix) {
-      # Move the biggest values to the principal diagonal
-      for (i in 1:n) {
-        for (j in 1:n) {
-          if (abs(matrix[i,i]) < abs(matrix[i,j])) {
-            # Move the row
-            aux <- matrix[,i]
-            matrix[,i] <- matrix[,j]
-            matrix[,j] <- aux
-          }
-        }
-      }
-
-      for (i in 1:n) {
+    # This function returns the row that could substitute the given row number (i)
+    new_row <- function(matrix, start, n) {
+      for (i in (start+1):n) {
         sum <- 0
         for (j in 1:n) {
-          # Sum every value in the row but the one in the principal diagonal
-          if(i != j) {
+          if (start != j)
             sum <- sum + abs(matrix[i,j])
-          }
         }
 
-        # Check what's bigger
-        if(abs(matrix[i,i]) < sum) {
-          message <- paste("Error: the element in the principal diagonal of the",i,"row is not bigger than the rest elements sum")
-          print(message)
-          print("Matrix reordered:")
+        if (abs(matrix[i, start]) >= sum)
+          return(i)
+      }
+
+      return(0)
+    }
+
+    # Reorder the matrix function
+    reorder_matrix <- function(matrix, n) {
+      for (i in 1:n) {
+        # Sum every value in the row but the one in the principal diagonal
+        sum <- 0
+        for (j in 1:n) {
+          if (i != j)
+            sum <- sum + abs(matrix[i,j])
+        }
+
+        # Move the rows if it's necessary
+        if (abs(matrix[i,i]) < sum) {
+          row_to_change <- new_row(matrix, i, n)
+
+          # Print a message if there's an error
+          if (row_to_change == 0) {
+            print("Error: the matrix is not an diagonally dominant matrix")
+            return(0)
+          }
+
+          # Move the row
+          aux <- matrix[i,]
+          matrix[i,] <- matrix[row_to_change,]
+          matrix[row_to_change,] <- aux
+          # Show the current matrix
           print(matrix)
-          return(0)
         }
       }
 
@@ -139,19 +155,19 @@ sistemEquations<- function() {
     res <- readline(prompt = "Enter the n value for nxn matrix: ")
     n <- as.numeric(res)
     
-    # Get the system matrix, values vector and initial values
+    # Get the system matrix, values vector, initial values and relative error
     custom <- create_custom_matrix(n)
-    custom <- reorder_matrix(custom)
-    if (is.matrix(custom)) {
-      values <- create_vector(n, "equation")
-      initial <- create_vector(n, "variable")
+    values <- create_vector(n, "equation")
+    initial <- create_vector(n, "variable")
+    res <- readline(prompt = "Enter the relative error: ")
+    error <- as.numeric(res)
 
-      # Get relative error
-      res <- readline(prompt = "Enter the relative error: ")
-      error <- as.numeric(res)
+    # Reorder the matrix
+    aumented_matrix <- matrix(c(custom, values), nrow = n, ncol = (n+1))
+    aumented_matrix <- reorder_matrix(aumented_matrix, n)
 
-      jacobi_method(custom, values, initial, n, error)
-    }
+    if (is.matrix(aumented_matrix))
+      jacobi_method(aumented_matrix, initial, n, error)
     
     cicle <- readline("Do you want to try again?\n press 1 to continue: ")
   }
