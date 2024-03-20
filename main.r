@@ -37,7 +37,8 @@ sistemEquations<- function() {
       A <- aumented_matrix[1:n, 1:n]
       b <- aumented_matrix[1:n, (n+1)]
 
-      # Create 2 matrices
+      # Create 3 matrices
+      D <- matrix(0, nrow = n, ncol = n)
       D_inverse <- matrix(0, nrow = n, ncol = n)
       R <- matrix(0, nrow = n, ncol = n)
 
@@ -54,19 +55,30 @@ sistemEquations<- function() {
             break
           } else {
             if (i == j) {
+              D[i,j] <- A[i,j]
               D_inverse[i,j] <- 1/A[i,j]
               R[i,j] <- 0
             } else {
               R[i,j] <- A[i,j]
+              D[i,j] <- 0
               D_inverse[i,j] <- 0
             }
           }
         }
       }
 
-      if (BAND) {
+      if (BAND)
         return(0)
-      }
+
+      # Show matrices
+      print("Initial matrix:")
+      print(A)
+      print("D matrix:")
+      print(D)
+      print("R matrix:")
+      print(R)
+      print("D inverse matrix:")
+      print(D_inverse)
 
       # Recursive part
       error <- 1000
