@@ -33,7 +33,6 @@ sistemEquations<- function() {
 
     # Jacobi method function
     jacobi_method <- function(aumented_matrix, x_anterior, n, relative_error) {
-      #
       A <- aumented_matrix[1:n, 1:n]
       b <- aumented_matrix[1:n, (n+1)]
 
@@ -83,34 +82,36 @@ sistemEquations<- function() {
       # Recursive part
       error <- 1000
       x <- matrix(0, nrow = n, ncol = 1)
+      errors <- matrix(0, nrow = n, ncol =1)
       while (error > relative_error) {
         # Get new values
         x <- D_inverse %*% (b - R%*%x_anterior)
 
         # Get the relative error for the firts value
         error <- abs((x[1,1]-x_anterior[1,1])/x[1,1])
+        # Save the error in the errors matrix
+        errors[1,1] <- error
+
         # Now for the rest of values
         for (i in 2:n) {
-          aux <- abs((x[i,1]-x_anterior[i,1])/x[i,1])
+          # Save the error
+          errors[i,1] <- abs((x[i,1]-x_anterior[i,1])/x[i,1])
+
           # Get the biggest relative error
-          if (aux > error) {
-            error <- aux
-          }
+          if (errors[i,1] > error)
+            error <- errors[i,1]
         }
 
         # Set new old values
         x_anterior <- x
 
-        # Show the current solution
-        success_message = paste("Solutions with a relative error of: ", error)
-        print(success_message)
+        # Show the current solution and errors
+        print("============================")
+        print("Solutions")
         print(x)
+        print("Errors")
+        print(errors)
       }
-      
-      # Show the final solution
-      success_message = paste("Solutions with a relative error of: ", error)
-      print(success_message)
-      print(x)
 
       return(1)
     }
@@ -174,8 +175,12 @@ sistemEquations<- function() {
     res <- readline(prompt = "Enter the relative error: ")
     error <- as.numeric(res)
 
-    # Reorder the matrix
     aumented_matrix <- matrix(c(custom, values), nrow = n, ncol = (n+1))
+    # Show the original matrix
+    print("Original matrix")
+    print(aumented_matrix)
+
+    # Reorder the matrix
     aumented_matrix <- reorder_matrix(aumented_matrix, n)
 
     if (is.matrix(aumented_matrix))
